@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://room821.github.io/agent-context-mcp/agent-context-graph.schema.json",
+  "title": "Agent Context Graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "nodes", "edges"],
+  "properties": {
+    "apiVersion": { "const": "agent.context/v1" },
+    "kind": { "const": "AgentContextGraph" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": { "name": { "type": "string", "minLength": 1 } }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "relation"],
+        "properties": {
+          "from": { "type": "string", "minLength": 1 },
+          "to": { "type": "string", "minLength": 1 },
+          "relation": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "pipelines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "triggers", "steps"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "triggers": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/eventType" } },
+          "steps": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/pipelineStep" } }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "stability", "capabilities"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["agent", "context-pod", "provider", "resolver", "release", "event"] },
+        "stability": { "enum": ["immutable", "mutable"] },
+        "capabilities": { "type": "array", "items": { "type": "string" } },
+        "provider": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["protocol", "endpoint"],
+          "properties": { "protocol": { "const": "mcp" }, "endpoint": { "type": "string", "format": "uri" } }
+        },
+        "events": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "accepts": { "type": "array", "items": { "$ref": "#/$defs/eventType" } },
+            "emits": { "type": "array", "items": { "$ref": "#/$defs/eventType" } }
+          }
+        },
+        "resolution": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "temporal": { "enum": ["latest_valid", "as_of", "history", "first_known", "all_versions", "changed_since"] },
+            "conflict": { "enum": ["prefer_authoritative", "return_all", "escalate"] }
+          }
+        }
+      }
+    },
+    "eventType": {
+      "enum": [
+        "context.snapshot.created", "context.release.published", "context.release.revoked",
+        "context.cache.created", "context.cache.hit", "context.cache.miss", "context.cache.invalidated",
+        "context.cache.expired", "context.cache.revalidated", "context.mutable.created",
+        "context.mutable.updated", "context.mutable.superseded", "context.mutable.redacted",
+        "context.mutable.expired", "context.mutable.compacted", "context.conflict.detected",
+        "context.resolution.selected", "context.resolution.escalated", "context.evidence.insufficient",
+        "context.scope.changed", "context.source.revoked"
+      ]
+    },
+    "pipelineStep": {
+      "enum": [
+        "validate_provenance", "create_revision_candidate", "mark_release_immutable",
+        "deny_future_retrieval", "deny_source_retrieval", "invalidate_related_cache",
+        "exclude_from_future_releases", "exclude_superseded_revision", "revoke_affected_releases",
+        "register_mutable_state", "update_compacted_state", "mark_requires_escalation",
+        "mark_evidence_insufficient", "block_answer_ready_release", "clear_escalation",
+        "mark_release_candidate", "recheck_scope", "observe_cache", "revalidate_cache"
+      ]
+    }
+  }
+}

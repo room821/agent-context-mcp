@@ -39,6 +39,13 @@ npm install
 npm test
 ```
 
+Check a Provider's remote MCP server without invoking any mutating tool:
+
+```bash
+AGENT_CONTEXT_MCP_BEARER_TOKEN=... npm run conformance -- https://provider.example.com/mcp
+```
+
 The normative graph document is [`docs/AGENT_CONTEXT_GRAPH.md`](docs/AGENT_CONTEXT_GRAPH.md).
 The MCP binding and conformance rules are [`docs/MCP_PROFILE.md`](docs/MCP_PROFILE.md).
 The YAML fixture is [`docs/sales-agent.graph.yaml`](docs/sales-agent.graph.yaml).
+The machine-readable graph schema is [`spec/agent-context-graph.schema.json`](spec/agent-context-graph.schema.json).

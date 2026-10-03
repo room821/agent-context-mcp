@@ -5,15 +5,18 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist", "docs"],
+  "files": ["dist", "docs", "spec"],
   "scripts": {
     "build": "tsup",
     "lint": "tsc --noEmit",
     "test": "npm run build && node --test test/**/*.test.mjs",
-    "viewer": "node scripts/context-viewer.mjs"
+    "viewer": "node scripts/context-viewer.mjs",
+    "conformance": "npm run build && node scripts/conformance.mjs",
+    "prepublishOnly": "npm test"
   },
   "keywords": ["agent", "context", "mcp", "charter", "provider-neutral"],
   "license": "MIT",
+  "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/room821/agent-context-mcp.git"

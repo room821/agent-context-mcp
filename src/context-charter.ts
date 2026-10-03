@@ -2,6 +2,11 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 
 export const CONTEXT_CHARTER_VERSION = "agent.context/v1" as const;
+export const CONTEXT_ERROR_CODES = {
+  POD_NOT_FOUND: "CONTEXT_POD_NOT_FOUND",
+  EVENT_REJECTED: "CONTEXT_EVENT_REJECTED",
+} as const;
+export type ContextErrorCode = (typeof CONTEXT_ERROR_CODES)[keyof typeof CONTEXT_ERROR_CODES];
 
 const StabilitySchema = z.enum(["immutable", "mutable"]);
 const NodeTypeSchema = z.enum(["agent", "context-pod", "provider", "resolver", "release", "event"]);
@@ -169,6 +174,7 @@ export type ContextEventAppendResult = Readonly<{
 
 export class ContextEventRejectedError extends Error {
   readonly name = "ContextEventRejectedError";
+  readonly code = CONTEXT_ERROR_CODES.EVENT_REJECTED;
   constructor(readonly eventType: ContextEventType, readonly reason: string) {
     super(`Context event rejected (${eventType}): ${reason}`);
   }
@@ -188,6 +194,7 @@ export interface ContextCharterStore {
 
 export class UnknownContextPodError extends Error {
   readonly name = "UnknownContextPodError";
+  readonly code = CONTEXT_ERROR_CODES.POD_NOT_FOUND;
   constructor(readonly podId: string) {
     super(`ContextPod is not registered: ${podId}`);
   }

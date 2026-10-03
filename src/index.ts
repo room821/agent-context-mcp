@@ -10,6 +10,7 @@ export {
   DEFAULT_CONTEXT_PIPELINES,
   REQUIRED_EVENT_CAPABILITIES,
   CONTEXT_CHARTER_VERSION,
+  CONTEXT_ERROR_CODES,
   UnknownContextPodError,
 } from "./context-charter.js";
 export { createContextCharterMcpServer } from "./context-charter-mcp.js";
@@ -19,6 +20,7 @@ export type {
   ContextEvent,
   ContextEventAppendResult,
   ContextEventType,
+  ContextErrorCode,
   ContextGraph,
   ContextNode,
   ContextPipeline,
