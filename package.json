@@ -1,5 +1,5 @@
 {
-  "name": "@schift-io/agent-context-mcp",
+  "name": "agent-context-mcp",
   "version": "0.1.0",
   "description": "Provider-neutral MCP binding for the Agent Context Charter",
   "type": "module",
@@ -16,7 +16,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/schift-io/agent-context-mcp.git"
+    "url": "git+https://github.com/room821/agent-context-mcp.git"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.4.0",
