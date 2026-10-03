@@ -5,7 +5,7 @@ export const CONTEXT_CHARTER_VERSION = "agent.context/v1" as const;
 
 const StabilitySchema = z.enum(["immutable", "mutable"]);
 const NodeTypeSchema = z.enum(["agent", "context-pod", "provider", "resolver", "release", "event"]);
-const EventTypeSchema = z.enum([
+export const CONTEXT_EVENT_TYPES = [
   "context.snapshot.created",
   "context.release.published",
   "context.release.revoked",
@@ -27,8 +27,9 @@ const EventTypeSchema = z.enum([
   "context.evidence.insufficient",
   "context.scope.changed",
   "context.source.revoked",
-]);
-const PipelineStepSchema = z.enum([
+] as const;
+const EventTypeSchema = z.enum(CONTEXT_EVENT_TYPES);
+export const CONTEXT_PIPELINE_STEPS = [
   "validate_provenance",
   "create_revision_candidate",
   "mark_release_immutable",
@@ -48,7 +49,8 @@ const PipelineStepSchema = z.enum([
   "recheck_scope",
   "observe_cache",
   "revalidate_cache",
-]);
+] as const;
+const PipelineStepSchema = z.enum(CONTEXT_PIPELINE_STEPS);
 
 export const ContextGraphSchema = z.object({
   apiVersion: z.literal(CONTEXT_CHARTER_VERSION),
@@ -126,6 +128,8 @@ export const ContextEventSchema = z.object({
   }).strict(),
   provenance: z.object({ source: z.string().min(1) }).strict(),
   payload: z.record(z.unknown()).optional(),
+  causation_id: z.string().min(1).optional(),
+  correlation_id: z.string().min(1).optional(),
 }).strict();
 
 export type ContextGraph = z.infer<typeof ContextGraphSchema>;
@@ -192,6 +196,7 @@ export class UnknownContextPodError extends Error {
 export class ContextCharterAdapter {
   private readonly appliedEvents = new Map<string, ContextEventAppendResult>();
   private readonly hydratedPods = new Set<string>();
+  private readonly lastOccurredAt = new Map<string, string>();
   private readonly podState = new Map<string, {
     excludedItems: Set<string>;
     excludedSources: Set<string>;
@@ -257,10 +262,15 @@ export class ContextCharterAdapter {
     const replay = this.appliedEvents.get(event.id);
     if (replay) return { ...replay, idempotent_replay: true };
     this.validateEventTarget(event);
+    const previousOccurredAt = this.lastOccurredAt.get(event.subject.pod);
+    if (previousOccurredAt !== undefined && event.occurred_at < previousOccurredAt) {
+      throw new ContextEventRejectedError(event.type, "occurred_at precedes the last accepted event for this Pod");
+    }
     const accepted = ContextEventSchema.parse(await this.providerFor(event.subject.pod).appendEvent(event));
     const pipeline = this.pipelineFor(event.type);
     const state = this.stateFor(event.subject.pod);
     this.applyPipeline(event, pipeline, state);
+    this.lastOccurredAt.set(event.subject.pod, event.occurred_at);
     return this.recordAppliedEvent(accepted, pipeline, state);
   }
 
@@ -281,7 +291,7 @@ export class ContextCharterAdapter {
   }
 
   private pipelineFor(eventType: ContextEventType): ContextPipeline {
-    const defaults = DEFAULT_PIPELINES[eventType];
+    const defaults = DEFAULT_CONTEXT_PIPELINES[eventType];
     const declared = this.describe().pipelines?.find((pipeline) => pipeline.triggers.includes(eventType));
     const steps = [...new Set([...(defaults?.steps ?? []), ...(declared?.steps ?? [])])];
     return { id: declared?.id ?? defaults?.id ?? `pipeline:${eventType}`, triggers: declared?.triggers ?? [eventType], steps };
@@ -344,6 +354,7 @@ export class ContextCharterAdapter {
       if (this.appliedEvents.has(event.id)) continue;
       const pipeline = this.pipelineFor(event.type);
       this.applyPipeline(event, pipeline, state);
+      this.lastOccurredAt.set(podId, event.occurred_at);
       this.recordAppliedEvent(event, pipeline, state);
     }
     this.hydratedPods.add(podId);
@@ -368,7 +379,7 @@ export class ContextCharterAdapter {
   }
 }
 
-const DEFAULT_PIPELINES: Record<ContextEventType, ContextPipeline> = {
+export const DEFAULT_CONTEXT_PIPELINES: Record<ContextEventType, ContextPipeline> = {
   "context.snapshot.created": { id: "snapshot", triggers: ["context.snapshot.created"], steps: ["validate_provenance", "create_revision_candidate"] },
   "context.release.published": { id: "release", triggers: ["context.release.published"], steps: ["mark_release_immutable"] },
   "context.release.revoked": { id: "release-revocation", triggers: ["context.release.revoked"], steps: ["revoke_affected_releases"] },
@@ -392,7 +403,7 @@ const DEFAULT_PIPELINES: Record<ContextEventType, ContextPipeline> = {
   "context.source.revoked": { id: "source-revocation", triggers: ["context.source.revoked"], steps: ["deny_source_retrieval", "invalidate_related_cache", "revoke_affected_releases"] },
 };
 
-const REQUIRED_EVENT_CAPABILITIES: Partial<Record<ContextEventType, string>> = {
+export const REQUIRED_EVENT_CAPABILITIES: Partial<Record<ContextEventType, string>> = {
   "context.cache.created": "cache",
   "context.cache.hit": "cache",
   "context.cache.miss": "cache",

@@ -40,4 +40,5 @@ npm test
 ```
 
 The normative graph document is [`docs/AGENT_CONTEXT_GRAPH.md`](docs/AGENT_CONTEXT_GRAPH.md).
+The MCP binding and conformance rules are [`docs/MCP_PROFILE.md`](docs/MCP_PROFILE.md).
 The YAML fixture is [`docs/sales-agent.graph.yaml`](docs/sales-agent.graph.yaml).
