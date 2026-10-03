@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent Context Graph</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">LOCAL CHARTER WORKBENCH</p>
+          <h1 id="graph-name">Agent Context Graph</h1>
+        </div>
+        <div class="top-actions">
+          <span id="save-state" class="save-state">Loaded from YAML</span>
+          <button id="save" class="primary-button" type="button">Save YAML</button>
+        </div>
+      </header>
+      <main class="workspace">
+        <aside class="node-rail" aria-label="Graph nodes">
+          <div class="rail-header"><span>Nodes</span><span id="node-count">0</span></div>
+          <input id="node-filter" class="filter" type="search" placeholder="Find node" aria-label="Find node" />
+          <div id="node-list" class="node-list"></div>
+        </aside>
+        <section class="canvas-panel" aria-label="Context graph canvas">
+          <div class="canvas-header">
+            <div>
+              <p class="eyebrow">ASSEMBLY</p>
+              <p class="canvas-help">Agent → ContextPods → compiled Context Release</p>
+            </div>
+            <span class="mcp-chip">MCP binding</span>
+          </div>
+          <div id="canvas" class="canvas">
+            <svg id="edges" aria-hidden="true"></svg>
+            <div class="grid"></div>
+            <div id="cards" class="cards"></div>
+          </div>
+          <div class="legend">
+            <span><i class="dot immutable"></i> immutable within release</span>
+            <span><i class="dot mutable"></i> mutable over time</span>
+            <span><i class="dot provider"></i> MCP/provider</span>
+          </div>
+        </section>
+        <aside id="inspector" class="inspector" aria-label="Node inspector">
+          <div class="inspector-empty">Select a node to edit its contract.</div>
+        </aside>
+      </main>
+    </div>
+    <script type="module" src="./viewer.js"></script>
+  </body>
+</html>

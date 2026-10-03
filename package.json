@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsup",
     "lint": "tsc --noEmit",
-    "test": "npm run build && node --test test/**/*.test.mjs"
+    "test": "npm run build && node --test test/**/*.test.mjs",
+    "viewer": "node scripts/context-viewer.mjs"
   },
   "keywords": ["agent", "context", "mcp", "charter", "provider-neutral"],
   "license": "MIT",
@@ -19,6 +20,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.4.0",
+    "yaml": "^2.8.4",
     "zod": "^3.23.0"
   },
   "devDependencies": {

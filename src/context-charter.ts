@@ -309,7 +309,7 @@ export class ContextCharterAdapter {
           state.blockingReasons.add(event.subject.item);
           break;
         case "clear_escalation":
-          state.blockingReasons.clear();
+          state.blockingReasons.delete(event.subject.item);
           break;
         case "revoke_affected_releases":
           state.revokedReleases.add(event.subject.release ?? event.subject.item);
