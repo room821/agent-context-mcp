@@ -66,6 +66,9 @@ describe("Agent Context MCP conformance profile", () => {
     try {
       const names = (await client.listTools()).tools.map((tool) => tool.name);
       assert.deepEqual(names, ["context_describe", "context_resolve", "context_revisions", "context_events", "context_event_append"]);
+      const eventTool = (await client.listTools()).tools.find((tool) => tool.name === "context_event_append");
+      assert.deepEqual(eventTool.inputSchema.properties.event.required, ["id", "type", "occurred_at", "subject", "actor", "effect", "provenance"]);
+      assert.deepEqual(eventTool.inputSchema.properties.event.properties.subject.required, ["pod", "item"]);
       const resources = await client.listResources();
       assert.deepEqual(resources.resources.map((resource) => resource.uri), ["context://graph", "context://pods/policy", "context://pods/memory"]);
     } finally {
