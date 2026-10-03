@@ -1,0 +1,74 @@
+apiVersion: agent.context/v1
+kind: AgentContextGraph
+metadata:
+  name: sales-agent
+nodes:
+  - id: sales-agent
+    type: agent
+    stability: immutable
+    capabilities:
+      - compile
+  - id: company-policy
+    type: context-pod
+    stability: immutable
+    provider:
+      protocol: mcp
+      endpoint: https://policy.example.com/mcp
+    capabilities:
+      - resolve
+      - cite
+      - cache
+      - revisions
+    events:
+      emits:
+        - context.snapshot.created
+        - context.release.published
+  - id: meeting-history
+    type: context-pod
+    stability: mutable
+    provider:
+      protocol: mcp
+      endpoint: https://meetings.example.com/mcp
+    capabilities:
+      - resolve
+      - history
+      - supersession
+      - conflict_detection
+      - mutable_redaction
+      - revisions
+    resolution:
+      temporal: latest_valid
+      conflict: escalate
+    events:
+      accepts:
+        - context.mutable.updated
+        - context.mutable.superseded
+        - context.mutable.redacted
+        - context.conflict.detected
+        - context.resolution.escalated
+    label: meeting-history
+edges:
+  - from: sales-agent
+    to: company-policy
+    relation: consumes
+  - from: sales-agent
+    to: meeting-history
+    relation: consumes
+pipelines:
+  - id: redaction-safety
+    triggers:
+      - context.mutable.redacted
+      - context.source.revoked
+    steps:
+      - deny_future_retrieval
+      - invalidate_related_cache
+      - exclude_from_future_releases
+      - revoke_affected_releases
+  - id: escalation
+    triggers:
+      - context.conflict.detected
+      - context.evidence.insufficient
+      - context.resolution.escalated
+    steps:
+      - mark_requires_escalation
+      - block_answer_ready_release
